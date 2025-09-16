@@ -73,7 +73,7 @@ const Profile = () => {
             {userRecipes?
             <div className="min-h-screen w-full flex flex-col md:p-5 bg-gray-100">
               {userRecipes.length != 0 ?
-                userRecipes.map((recipe) => (
+                userRecipes.slice().reverse().map((recipe) => (
                   <NavLink key={recipe._id} to={`/recipe/${recipe._id}`}>
                     <Recipe key={recipe._id} datapost={recipe.recipe}/>
                   </NavLink>

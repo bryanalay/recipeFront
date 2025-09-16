@@ -9,6 +9,7 @@ import { ContentProvider } from './Context/ContentContext'
 import PostView from './pages/Posts/PostView'
 import NewRecipe from './components/Recipe/NewRecipe'
 import Profile from './components/Profile/Profile'
+import GenRecipe from './pages/Recipe/GenRecipe'
  
 function App() {
   //const [isOpen, setIsOpen] = useState<boolean>(true);
@@ -25,6 +26,7 @@ function App() {
             <Route path="/profile" element={<Profile/>} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/newrecipe" element={<NewRecipe />} />
+            <Route path="/genrecipe" element={<GenRecipe />} />
           </Routes>
         </Router>
       </ContentProvider>

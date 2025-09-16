@@ -43,9 +43,10 @@ const Header: React.FC = () => {
         fetchUserData(tokenSaved);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        localStorage.removeItem('token');
       }
     }
-  }, []);
+  }, [token]);
 
   // Verifica si la ruta actual está en el array hiddenRoutes
   if (hiddenRoutes.includes(location.pathname)) {
@@ -64,13 +65,13 @@ const Header: React.FC = () => {
           </div>
 
           {/* Desktop Navigation - Usamos NavLink para resaltar el enlace activo */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 justify-center items-center">
             <NavLink
               to="/newrecipe"
               className={
                 `bg-indigo-300 rounded-xl text-white   px-3 py-2 text-sm font-medium
-                  'border-b-2 border-indigo-500'
-                }`
+                  border-b-2 border-indigo-500 hover:bg-indigo-500 block h-full text-center
+                `
               }
             >
               Nueva receta
@@ -85,16 +86,15 @@ const Header: React.FC = () => {
             >
               Recetas
             </NavLink>
-            {/* <NavLink
-              to="/dashboard"
-              className={({ isActive }) =>
-                `text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium ${
-                  isActive ? 'border-b-2 border-indigo-500' : ''
-                }`
+            <NavLink
+              to="/genrecipe"
+              className={
+                "bg-indigo-500 rounded-xl text-white   px-3 py-2 text-sm font-medium border-b-2 border-indigo-700 hover:bg-indigo-700 block h-full text-center"                
               }
+              onClick={() => setIsMenuOpen(false)}
             >
-              Busqueda IA
-            </NavLink> */}
+              Genera receta IA
+            </NavLink>
             {token &&<NavLink
               to="/profile"
               className={({ isActive }) =>
@@ -192,6 +192,16 @@ const Header: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               Nueva receta
+            </NavLink>
+            <NavLink
+              to="/genrecipe"
+              className={
+                `bg-indigo-500 text-white px-3 py-2 w-full text-base font-medium block`
+                
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Genera receta IA
             </NavLink>
             <NavLink
               to="/recipes"

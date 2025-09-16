@@ -4,6 +4,7 @@ import { Comment, CommentDataResponse, PostRecipeDataResponse, userPost } from "
 import Recipe from "../Recipe/Recipe";
 import PostSkeleton from "./PostSkeleton";
 import PostCommentSkeleton from "./PostCommentSkeleton";
+import { postComment } from "../../services/recipeService";
 
 interface RecipePostViewProps{
   recipeId: string;
@@ -39,6 +40,15 @@ const RecipePostView = ({recipeId, user}:RecipePostViewProps) => {
   }
   console.log("Enviar comentario:", newComment);
   // aquí iría tu lógica para hacer POST al backend
+  async function SaveComment(){
+    if(comments?._id != ''){
+
+      await postComment(user._id, comments?._id ?? "", newComment)
+    }else{
+      console.log('No se pudo guardar el comentario');
+    }
+  }
+  SaveComment()
   //setComments()
   setNewComment(""); 
   console.log('COMENTARIO AGREGADO: ', comments);
@@ -59,7 +69,7 @@ const RecipePostView = ({recipeId, user}:RecipePostViewProps) => {
 
   return (
     <div>
-      {post ? <Recipe datapost={post.recipe} />: <PostSkeleton/>}
+      {post ? <Recipe datapost={post.recipe} userData={post.user}/>: <PostSkeleton/>}
 
       {/* campo para comentar */}
       <div className="m-6">

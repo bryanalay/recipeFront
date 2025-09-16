@@ -3,7 +3,6 @@ import { useAuth } from "../Context/AuthContext";
 import { getRecipes } from "../services/recipeService";
 import { getUserData } from "../services";
 import Recipes from "./Recipe/Recipes";
-import NewRecipeModal from "./Modals/NewRecipeModal";
 
 const Dashboard = () => {
 
@@ -12,6 +11,7 @@ const Dashboard = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   const { setToken } = auth;
+  console.log('estoy en dashboard, se repide?');
   useEffect(()=>{
     const tokenSaved = localStorage.getItem('token');
     if (tokenSaved && typeof setToken === "function") {
@@ -24,7 +24,6 @@ const Dashboard = () => {
   },[setToken])
   return (
     <div className="min-h-screen w-full flex flex-col md:p-5 bg-gray-100">
-      <NewRecipeModal />
       <Recipes />
     </div>
   );

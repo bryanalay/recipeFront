@@ -14,4 +14,7 @@ export const PostsPath = {
   getCommentsByRecipeId: (id:string)=>`/api/postRecipe/comments/${id}`,
   newComment: `/api/postrecipe/comments/new`,
   getRecipesByUserId: (id:string)=>`/api/postRecipe/user/${id}`,
+  newRecipe: '/api/recipe/new',
+  genRecipe: '/api/ia/gen-recipe',
+  deleteRecipe: (id:string) => `/api/postrecipe/${id}`,
 }

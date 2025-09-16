@@ -1,6 +1,18 @@
 import React, { useState, FormEvent, useRef } from 'react';
+import { initializeApp } from 'firebase/app';
+import { useNavigate } from 'react-router-dom';
 
-// Re-utiliza la interfaz proporcionada
+const firebaseConfig = {
+  apiKey: "AIzaSyCW59fPoJt7IkAd9pTbvL37iPQ0cKlqWZk",
+  authDomain: "almi-bb52e.firebaseapp.com",
+  projectId: "almi-bb52e",
+  storageBucket: "almi-bb52e.appspot.com",
+  messagingSenderId: "988456719615",
+  appId: "1:988456719615:web:274caf336f59367d7d68ca",
+  measurementId: "G-Y5PZ4L6HJ3"
+};
+initializeApp(firebaseConfig);
+
 export interface RecipeDataResponse {
   _id: string;
   images?: string[];
@@ -8,88 +20,120 @@ export interface RecipeDataResponse {
   description: string;
   ingredients: string[];
   steps: string[];
+  isPublished?: boolean;
 }
 
-// Valores iniciales del formulario para un nuevo objeto de receta
 const initialRecipeState: Omit<RecipeDataResponse, '_id'> = {
   images: [],
   title: '',
   description: '',
   ingredients: [''],
   steps: [''],
+  isPublished: false,
 };
 
 const NewRecipeForm: React.FC = () => {
   const [recipe, setRecipe] = useState(initialRecipeState);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
-  // Maneja los terrenos en los campos de texto del formulario
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setRecipe({ ...recipe, [name]: value });
   };
 
-  // Maneja los cambios para los arrays de ingredientes y pasos
   const handleArrayChange = (e: React.ChangeEvent<HTMLInputElement>, index: number, field: 'ingredients' | 'steps') => {
     const newArray = [...recipe[field]];
     newArray[index] = e.target.value;
     setRecipe({ ...recipe, [field]: newArray });
   };
 
-  // Añade un nuevo campo de entrada para ingredientes o pasos
   const handleAddInput = (field: 'ingredients' | 'steps') => {
     setRecipe({ ...recipe, [field]: [...recipe[field], ''] });
   };
 
-  // Elimina un campo de entrada para ingredientes o pasos
   const handleRemoveInput = (index: number, field: 'ingredients' | 'steps') => {
     const newArray = recipe[field].filter((_, i) => i !== index);
     setRecipe({ ...recipe, [field]: newArray });
   };
 
-  // Maneja la carga de múltiples archivos de imagen
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const files = Array.from(e.target.files); // Convertir FileList a array
-      const newImages: string[] = [];
+      setUploading(true);
+      setError(null);
+      const files = Array.from(e.target.files);
+      const formData = new FormData();
 
-      // Procesar cada archivo
       files.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (reader.result) {
-            newImages.push(reader.result as string);
-            // Actualizar el estado solo cuando todas las imágenes estén procesadas
-            if (newImages.length === files.length) {
-              setRecipe((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), ...newImages],
-              }));
-            }
-          }
-        };
-        reader.readAsDataURL(file);
+        formData.append('images', file);
       });
+
+      try {
+        const response = await fetch('https://myrecipeapi.onrender.com/api/upload/image', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al subir imágenes al servidor');
+        }
+
+        const { downloadURLs } = await response.json();
+        setRecipe((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), ...downloadURLs],
+        }));
+        console.log('Imágenes subidas con éxito:', downloadURLs);
+      } catch (error: any) {
+        setError(`Error al subir imágenes: ${error.message}`);
+        console.error('Error uploading images:', error);
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
-  // Maneja el envío del formulario
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('New Recipe Submitted:', recipe); // Imprimir el estado actual
-    // Aquí podrías enviar la receta al servidor
-    // onAddRecipe(recipe);
 
-    // Reiniciar el formulario
-    setRecipe(initialRecipeState);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    try {
+      console.log('esta es la recipe que se subira', recipe);
+      const response = await fetch('https://myrecipeapi.onrender.com/api/recipe/new', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(recipe),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar la receta');
+      }
+
+      console.log('Receta guardada con éxito:', await response.json());
+      setRecipe(initialRecipeState);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setError(null);
+      navigate('/recipes');
+    } catch (error: any) {
+      setError(`Error al guardar la receta: ${error.message}`);
+      console.error('Error saving recipe:', error);
     }
   };
 
   return (
     <div className="max-w-screen mx-auto p-4">
       <form onSubmit={handleSubmit} className="space-y-4 min-w-screen md:min-w-[450px] lg:min-w-[600px]">
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
         <div className="space-y-1">
           <label htmlFor="title" className="block text-sm font-medium text-gray-600">
             Título
@@ -185,39 +229,62 @@ const NewRecipeForm: React.FC = () => {
             multiple
             ref={fileInputRef}
             onChange={handleImageUpload}
+            disabled={uploading}
             className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:bg-gray-100 file:text-gray-600 hover:file:bg-gray-200"
           />
+          {uploading && <p className="text-sm text-gray-600">Subiendo imágenes...</p>}
         </div>
 
         {recipe.images && recipe.images.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {recipe.images.map((image, index) => (
               <div key={index} className="relative">
-                <img
-                  src={image}
-                  alt={`Preview ${index}`}
-                  className="w-20 h-20 object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    setRecipe((prev) => ({
-                      ...prev,
-                      images: prev.images?.filter((_, i) => i !== index),
-                    }))
-                  }
-                  className="absolute top-0 right-0 text-red-500 hover:text-red-700"
-                >
-                  ✕
-                </button>
+                {image && (
+                  <div>
+                    <img
+                      src={image}
+                      alt={`Preview ${index}`}
+                      className="w-20 h-20 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setRecipe((prev) => ({
+                          ...prev,
+                          images: prev.images?.filter((_, i) => i !== index),
+                        }))
+                      }
+                      className="absolute top-0 right-0 text-red-500 hover:text-red-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
 
+        <div className="space-y-1">
+          <label htmlFor="isPublished" className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isPublished"
+              name="isPublished"
+              checked={recipe.isPublished}
+              onChange={(e) => setRecipe({ ...recipe, isPublished: e.target.checked })}
+              className="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-600">Publicar receta</span>
+          </label>
+        </div>
+
         <button
           type="submit"
-          className="w-full py-2 text-sm text-gray-600 border border-gray-300 hover:bg-gray-100"
+          disabled={uploading}
+          className={`w-full py-2 text-sm text-gray-600 border border-gray-300 ${
+            uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+          }`}
         >
           Crear Receta
         </button>
