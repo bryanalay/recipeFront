@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AiRecipe from '../../components/Recipe/AiRecipe';
 import { genRecipe } from '../../services/recipeService';
+import { NavLink } from 'react-router-dom';
 
 const RecipeGenerator: React.FC = () => {
   const [recipeName, setRecipeName] = useState('');
@@ -23,7 +24,8 @@ const RecipeGenerator: React.FC = () => {
         setError('Failed to generate recipe. Please try again.');
       }
     }
-    fetchPostRecipe('assistant', recipeName);
+
+    localStorage.getItem('token')?fetchPostRecipe('assistant', recipeName):<NavLink to={'/login'}/>
 
     setIsLoading(false);
   };
@@ -51,13 +53,23 @@ const RecipeGenerator: React.FC = () => {
               className="w-full px-4 py-3 bg-gray-50 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
-          <button
-            type="submit"
-            disabled={isLoading || !recipeName.trim()}
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? 'Generating...' : 'Generate Recipe'}
-          </button>
+          {
+            localStorage.getItem('token')?
+              <button
+                type="submit"
+                disabled={isLoading || !recipeName.trim() || localStorage.getItem('token')===null}
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors"
+              >
+               { isLoading ? 'Generating...' : 'Generate Recipe'}
+              </button>
+            :
+              <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors">
+                <NavLink to="/login">
+                  Please login to generate a recipe
+                </NavLink>
+              </button>
+          }
+
         </form>
         {error && (
           <div className="mt-4 p-3 bg-red-100 text-red-800 rounded-lg text-center">
