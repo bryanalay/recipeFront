@@ -6,11 +6,12 @@ import DeleteModal from '../Modals/DeleteModal';
 import { deleteRecipe } from '../../services/recipeService';
 
 interface RecipePostProps {
+  postid: string;
   datapost: RecipeDataResponse;
   userData?: userPost;
 }
 
-const Recipe = ({ datapost, userData }: RecipePostProps) => {
+const Recipe = ({ postid, datapost, userData }: RecipePostProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -39,11 +40,11 @@ const Recipe = ({ datapost, userData }: RecipePostProps) => {
       if (confirm) {
         setIsDeleting(true);
         try {
-          if(!datapost._id) throw new Error('No hay id de receta');
+          if(!postid) throw new Error('No hay id de receta');
           if(!token) throw new Error('No hay token');
-          const response = await deleteRecipe(datapost._id );
+          const response = await deleteRecipe(postid);
           console.log(response);
-          console.log('Receta eliminada:', datapost._id);
+          console.log('Receta eliminada:', postid);
           if(datapost._id){
             deletePost(datapost._id);
           }
@@ -55,26 +56,26 @@ const Recipe = ({ datapost, userData }: RecipePostProps) => {
       }
       setIsOpenModal(false);
     },
-    [setIsOpenModal, deletePost, datapost._id, token]
+    [setIsOpenModal, deletePost, postid, token]
   );
 
   const handleNextImage = useCallback(() => {
-    if (datapost.images && datapost.images.length > 0) {
+    if (datapost?.images && datapost.images.length > 0) {
       setCurrentImageIndex((prev) => (prev + 1) % (datapost.images?.length ?? 1));
     }
-  }, [datapost.images]);
+  }, [datapost?.images]);
 
   const handlePrevImage = useCallback(() => {
-    if (datapost.images && datapost.images.length > 0) {
+    if (datapost?.images && datapost.images?.length > 0) {
       setCurrentImageIndex((prev) => {
         const length = datapost.images?.length ?? 1;
         return (prev - 1 + length) % length;
       });
     }
-  }, [datapost.images]);
+  }, [datapost?.images]);
 
-  console.log('Recipe renderizado', datapost._id);
-  console.log('datapost.images:', datapost.images);
+  console.log('Recipe renderizado', postid);
+  console.log('datapost.images:', datapost?.images);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-5 mb-4 relative" key={datapost._id}>

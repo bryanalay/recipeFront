@@ -75,7 +75,7 @@ const Profile = () => {
               {userRecipes.length != 0 ?
                 userRecipes.slice().reverse().map((recipe) => (
                   <NavLink key={recipe._id} to={`/recipe/${recipe._id}`}>
-                    <Recipe key={recipe._id} datapost={recipe.recipe}/>
+                    <Recipe key={recipe._id} postid={recipe._id} datapost={recipe.recipe}/>
                   </NavLink>
                 ))
                 :<PostSkeleton />

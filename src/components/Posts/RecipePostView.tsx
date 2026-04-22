@@ -69,7 +69,7 @@ const RecipePostView = ({recipeId, user}:RecipePostViewProps) => {
 
   return (
     <div>
-      {post ? <Recipe datapost={post.recipe} userData={post.user}/>: <PostSkeleton/>}
+      {post ? <Recipe postid={post._id} datapost={post.recipe} userData={post.user}/>: <PostSkeleton/>}
 
       {/* campo para comentar */}
       <div className="m-6">
